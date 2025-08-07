@@ -1,0 +1,26 @@
+# Node modules
+node_modules/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Tailwind build output
+/assets/application.css
+/assets/application.css.map
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Env files (if any)
+.env
+.env.local
+
+# VS Code settings (optional)
+.vscode/
+
+# Cache directories
+.cache/
+dist/
