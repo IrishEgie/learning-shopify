@@ -1,15 +1,13 @@
 {
-    "name": "Template 404",
-    "layout": "custom_theme",
-    "wrapper": "div#404template.custom-class[custom-attribute='hello']",
-    "sections": {
-        "template-404": {
-            "type": "example-404",
-            "name": "Template 404",
-            "settings": {
-                "message": "The page you are looking for does not exist."
-            }
-        }
-    },
-    "order":["template-404"],
-}   
+  "name": "Template 404",
+  "sections": {
+    "template": {
+      "type": "template-404",
+      "settings": {
+        "title": "Not Found",
+        "subtext_title": "The requested resource could not be found."
+      }
+    }
+  },
+  "order": ["template"]
+}
