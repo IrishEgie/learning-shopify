@@ -1,0 +1,75 @@
+<footer class="bg-gray-900 text-white">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 py-12">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+      
+      <!-- Company Info -->
+      <div>
+        <h3 class="text-lg font-bold mb-4">{{ shop.name }}</h3>
+        <p class="text-gray-400 text-sm leading-relaxed">
+          {{ shop.description | default: 'Your trusted online store for quality products.' }}
+        </p>
+      </div>
+      
+      <!-- Quick Links -->
+      <div>
+        <h3 class="text-lg font-bold mb-4">Quick Links</h3>
+        <ul class="space-y-2">
+          <li><a href="/collections/all" class="text-gray-400 hover:text-white text-sm">All Products</a></li>
+          <li><a href="/pages/about" class="text-gray-400 hover:text-white text-sm">About Us</a></li>
+          <li><a href="/pages/contact" class="text-gray-400 hover:text-white text-sm">Contact</a></li>
+          <li><a href="/pages/shipping" class="text-gray-400 hover:text-white text-sm">Shipping</a></li>
+        </ul>
+      </div>
+      
+      <!-- Customer Service -->
+      <div>
+        <h3 class="text-lg font-bold mb-4">Customer Service</h3>
+        <ul class="space-y-2">
+          <li><a href="/pages/faq" class="text-gray-400 hover:text-white text-sm">FAQ</a></li>
+          <li><a href="/pages/returns" class="text-gray-400 hover:text-white text-sm">Returns</a></li>
+          <li><a href="/pages/privacy-policy" class="text-gray-400 hover:text-white text-sm">Privacy Policy</a></li>
+          <li><a href="/pages/terms-of-service" class="text-gray-400 hover:text-white text-sm">Terms of Service</a></li>
+        </ul>
+      </div>
+      
+      <!-- Newsletter -->
+      <div>
+        <h3 class="text-lg font-bold mb-4">Newsletter</h3>
+        <p class="text-gray-400 text-sm mb-4">Subscribe to get updates on new products and offers.</p>
+        <form action="/contact#newsletter" method="post" class="flex">
+          <input type="hidden" name="form_type" value="customer">
+          <input type="hidden" name="contact[tags]" value="newsletter">
+          <input type="email" 
+                 name="contact[email]" 
+                 placeholder="Your email"
+                 class="flex-1 px-3 py-2 bg-gray-800 text-white rounded-l-md border border-gray-700 focus:outline-none focus:border-blue-500 text-sm">
+          <button type="submit" 
+                  class="px-4 py-2 bg-blue-500 text-white rounded-r-md hover:bg-blue-600 text-sm">
+            Subscribe
+          </button>
+        </form>
+      </div>
+      
+    </div>
+    
+    <!-- Bottom Bar -->
+    <div class="border-t border-gray-800 mt-8 pt-8">
+      <div class="flex flex-col md:flex-row items-center justify-between">
+        <p class="text-gray-400 text-sm">
+          © {{ 'now' | date: '%Y' }} {{ shop.name }}. All rights reserved.
+        </p>
+        <div class="flex space-x-4 mt-4 md:mt-0">
+          {% if settings.social_facebook_link != blank %}
+            <a href="{{ settings.social_facebook_link }}" class="text-gray-400 hover:text-white">Facebook</a>
+          {% endif %}
+          {% if settings.social_instagram_link != blank %}
+            <a href="{{ settings.social_instagram_link }}" class="text-gray-400 hover:text-white">Instagram</a>
+          {% endif %}
+          {% if settings.social_twitter_link != blank %}
+            <a href="{{ settings.social_twitter_link }}" class="text-gray-400 hover:text-white">Twitter</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>

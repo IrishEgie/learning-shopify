@@ -1,0 +1,62 @@
+<!-- Hero Section -->
+<section class="bg-gray-50 py-8 md:py-16">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6">
+    <div class="text-center">
+      <h1 class="text-4xl md:text-6xl font-bold text-gray-900 mb-4">
+        Welcome to {{ shop.name }}
+      </h1>
+      <p class="text-lg md:text-xl text-gray-700 mb-8 max-w-2xl mx-auto">
+        Discover amazing products that will change your life
+      </p>
+      <a href="/collections/all" class="inline-flex items-center px-6 py-3 bg-blue-500 text-white font-medium rounded-lg hover:bg-blue-700">
+        Shop Now
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- Featured Collections -->
+<section class="py-16">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6">
+    <div class="text-center mb-12">
+      <h2 class="text-3xl font-bold text-gray-900">Featured Collections</h2>
+      <p class="text-gray-600 mt-4">Browse our most popular categories</p>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      {% for collection in collections limit: 3 %}
+        <div class="group">
+          <a href="{{ collection.url }}">
+            {% if collection.featured_image %}
+              <img src="{{ collection.featured_image | img_url: '400x400' }}" 
+                   alt="{{ collection.title }}"
+                   class="w-full h-64 object-cover rounded-lg group-hover:opacity-90">
+            {% else %}
+              <div class="w-full h-64 bg-gray-200 rounded-lg flex items-center justify-center">
+                <span class="text-gray-500">No Image</span>
+              </div>
+            {% endif %}
+            <h3 class="text-xl font-medium text-gray-900 mt-4">{{ collection.title }}</h3>
+            <p class="text-gray-600 mt-2">{{ collection.products_count }} products</p>
+          </a>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- Featured Products -->
+<section class="bg-gray-50 py-16">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6">
+    <div class="text-center mb-12">
+      <h2 class="text-3xl font-bold text-gray-900">Featured Products</h2>
+      <p class="text-gray-600 mt-4">Check out our most popular items</p>
+    </div>
+    
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+      {% for product in collections.frontpage.products limit: 8 %}
+        {% render 'product-card', product: product %}
+      {% endfor %}
+    </div>
+  </div>
+</section>

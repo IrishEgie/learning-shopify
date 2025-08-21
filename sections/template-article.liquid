@@ -135,6 +135,34 @@
   </div>
 {% endif %}
 
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": {{ article.title | json }},
+  "articleBody": {{ article.content | strip_html | json }},
+  {% if article.excerpt != blank %}"description": {{ article.excerpt | strip_html | json }},{% endif %}
+  {% if article.image %}"image": [{{ article.image | image_url: width: 800 | prepend: 'https:' | json }}],{% endif %}
+  "datePublished": {{ article.published_at | date: '%Y-%m-%d' | json }},
+  "dateModified": {{ article.updated_at | date: '%Y-%m-%d' | json }},
+  "author": {
+    "@type": "Person",
+    "name": {{ article.author | json }}
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": {{ shop.name | json }},
+    "logo": {
+      "@type": "ImageObject",
+      "url": {{ shop.logo | image_url: width: 300 | prepend: 'https:' | json }}
+    }
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": {{ canonical_url | json }}
+  }
+}
+</script>
 
 {% schema %}
 {
