@@ -1,0 +1,30 @@
+{
+  "sections": {
+    "main": {
+      "type": "template-blog",
+      "settings": {
+        "show_blog_header": true,
+        "header_alignment": "center",
+        "show_blog_description": true,
+        "show_article_count": false,
+        "layout": "grid",
+        "columns": "2",
+        "card_style": "shadow",
+        "posts_per_page": 6,
+        "show_featured_image": true,
+        "show_excerpt": true,
+        "excerpt_length": 120,
+        "show_author": true,
+        "show_date": true,
+        "show_tags": true,
+        "max_tags": 3,
+        "show_read_more": true,
+        "read_more_text": "Read More",
+        "show_pagination": true
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

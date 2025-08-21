@@ -1,0 +1,327 @@
+{% paginate blog.articles by section.settings.posts_per_page %}
+
+<div class="max-w-7xl mx-auto px-4 py-8">
+  
+  <!-- Blog Header -->
+  {% if section.settings.show_blog_header %}
+    <div class="{% if section.settings.header_alignment == 'center' %}text-center{% endif %} mb-12">
+      <h1 class="text-4xl font-bold text-gray-900 mb-4">{{ blog.title }}</h1>
+      {% if section.settings.show_blog_description and blog.description != blank %}
+        <p class="text-lg text-gray-600">{{ blog.description }}</p>
+      {% endif %}
+      {% if section.settings.show_article_count %}
+        <p class="text-sm text-gray-500 mt-2">{{ blog.articles_count }} articles</p>
+      {% endif %}
+    </div>
+  {% endif %}
+  
+  <!-- Blog Posts -->
+  <div class="{% if section.settings.layout == 'grid' %}grid grid-cols-1 {% if section.settings.columns == '2' %}md:grid-cols-2{% elsif section.settings.columns == '3' %}md:grid-cols-3{% endif %} gap-8{% else %}space-y-8{% endif %} mb-12">
+    {% for article in blog.articles %}
+      <article class="{% if section.settings.card_style == 'shadow' %}bg-white rounded-lg shadow hover:shadow-lg{% else %}border-b border-gray-200 pb-8{% endif %} group">
+        
+        {% if section.settings.show_featured_image and article.image %}
+          <a href="{{ article.url }}">
+            <img src="{{ article.image | img_url: '400x250' }}" 
+                 alt="{{ article.title }}"
+                 class="w-full h-48 object-cover {% if section.settings.card_style == 'shadow' %}rounded-t-lg{% else %}rounded-lg{% endif %} group-hover:opacity-90">
+          </a>
+        {% endif %}
+        
+        <div class="{% if section.settings.card_style == 'shadow' %}p-6{% else %}mt-4{% endif %}">
+          
+          <!-- Meta Info -->
+          {% if section.settings.show_date or section.settings.show_author %}
+            <div class="text-sm text-gray-500 mb-3">
+              {% if section.settings.show_date %}
+                <time datetime="{{ article.published_at | date: '%Y-%m-%d' }}">
+                  {{ article.published_at | date: '%B %d, %Y' }}
+                </time>
+              {% endif %}
+              {% if section.settings.show_author and section.settings.show_date %}
+                <span class="mx-2">•</span>
+              {% endif %}
+              {% if section.settings.show_author %}
+                <span>{{ article.author }}</span>
+              {% endif %}
+            </div>
+          {% endif %}
+          
+          <!-- Title -->
+          <h2 class="{% if section.settings.layout == 'list' %}text-2xl{% else %}text-xl{% endif %} font-bold text-gray-900 mb-3 group-hover:text-blue-500">
+            <a href="{{ article.url }}">{{ article.title }}</a>
+          </h2>
+          
+          <!-- Excerpt -->
+          {% if section.settings.show_excerpt %}
+            <p class="text-gray-600 mb-4 leading-relaxed">
+              {% if article.excerpt.size > 0 %}
+                {{ article.excerpt | strip_html | truncate: section.settings.excerpt_length }}
+              {% else %}
+                {{ article.content | strip_html | truncate: section.settings.excerpt_length }}
+              {% endif %}
+            </p>
+          {% endif %}
+          
+          <!-- Tags -->
+          {% if section.settings.show_tags and article.tags.size > 0 %}
+            <div class="flex flex-wrap gap-2 mb-4">
+              {% for tag in article.tags limit: section.settings.max_tags %}
+                <a href="{{ blog.url }}/tagged/{{ tag | handle }}" 
+                   class="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs hover:bg-gray-200">
+                  {{ tag }}
+                </a>
+              {% endfor %}
+            </div>
+          {% endif %}
+          
+          <!-- Read More -->
+          {% if section.settings.show_read_more %}
+            <a href="{{ article.url }}" 
+               class="inline-flex items-center text-blue-500 hover:text-blue-700 font-medium text-sm">
+              {{ section.settings.read_more_text }}
+              <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+              </svg>
+            </a>
+          {% endif %}
+        </div>
+      </article>
+    {% endfor %}
+  </div>
+  
+  <!-- Pagination -->
+  {% if section.settings.show_pagination and paginate.pages > 1 %}
+    <div class="flex justify-center">
+      <nav class="flex items-center space-x-2">
+        {% if paginate.previous %}
+          <a href="{{ paginate.previous.url }}" 
+             class="px-4 py-2 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 rounded">
+            ← Previous
+          </a>
+        {% endif %}
+        
+        {% for part in paginate.parts %}
+          {% if part.is_link %}
+            <a href="{{ part.url }}" 
+               class="px-3 py-2 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 rounded">
+              {{ part.title }}
+            </a>
+          {% else %}
+            {% if part.title == '&hellip;' %}
+              <span class="px-3 py-2 text-gray-500">...</span>
+            {% else %}
+              <span class="px-3 py-2 bg-blue-500 text-white border border-blue-500 rounded">
+                {{ part.title }}
+              </span>
+            {% endif %}
+          {% endif %}
+        {% endfor %}
+        
+        {% if paginate.next %}
+          <a href="{{ paginate.next.url }}" 
+             class="px-4 py-2 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 rounded">
+            Next →
+          </a>
+        {% endif %}
+      </nav>
+    </div>
+  {% endif %}
+  
+</div>
+
+{% endpaginate %}
+
+{% schema %}
+{
+  "name": "Blog Main",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Blog Header"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_blog_header",
+      "label": "Show blog header",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "header_alignment",
+      "label": "Header alignment",
+      "options": [
+        {
+          "value": "left",
+          "label": "Left"
+        },
+        {
+          "value": "center",
+          "label": "Center"
+        }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_blog_description",
+      "label": "Show blog description",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_article_count",
+      "label": "Show article count",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Layout Settings"
+    },
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "Layout",
+      "options": [
+        {
+          "value": "grid",
+          "label": "Grid"
+        },
+        {
+          "value": "list",
+          "label": "List"
+        }
+      ],
+      "default": "grid"
+    },
+    {
+      "type": "select",
+      "id": "columns",
+      "label": "Grid columns",
+      "options": [
+        {
+          "value": "1",
+          "label": "1 column"
+        },
+        {
+          "value": "2",
+          "label": "2 columns"
+        },
+        {
+          "value": "3",
+          "label": "3 columns"
+        }
+      ],
+      "default": "2",
+      "info": "Only applies to grid layout"
+    },
+    {
+      "type": "select",
+      "id": "card_style",
+      "label": "Card style",
+      "options": [
+        {
+          "value": "shadow",
+          "label": "Card with shadow"
+        },
+        {
+          "value": "minimal",
+          "label": "Minimal"
+        }
+      ],
+      "default": "shadow"
+    },
+    {
+      "type": "range",
+      "id": "posts_per_page",
+      "label": "Posts per page",
+      "min": 3,
+      "max": 12,
+      "step": 3,
+      "default": 6
+    },
+    {
+      "type": "header",
+      "content": "Article Content"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_featured_image",
+      "label": "Show featured image",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_excerpt",
+      "label": "Show excerpt",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "excerpt_length",
+      "label": "Excerpt length",
+      "min": 80,
+      "max": 200,
+      "step": 20,
+      "default": 120
+    },
+    {
+      "type": "header",
+      "content": "Article Meta"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_author",
+      "label": "Show author",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_date",
+      "label": "Show date",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_tags",
+      "label": "Show tags",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "max_tags",
+      "label": "Maximum tags to show",
+      "min": 2,
+      "max": 8,
+      "step": 1,
+      "default": 3
+    },
+    {
+      "type": "header",
+      "content": "Read More Button"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_read_more",
+      "label": "Show read more button",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "read_more_text",
+      "label": "Read more text",
+      "default": "Read More"
+    },
+    {
+      "type": "header",
+      "content": "Pagination"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_pagination",
+      "label": "Show pagination",
+      "default": true
+    }
+  ]
+}
+{% endschema %}
