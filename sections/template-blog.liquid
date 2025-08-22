@@ -20,11 +20,17 @@
     {% for article in blog.articles %}
       <article class="{% if section.settings.card_style == 'shadow' %}bg-white rounded-lg shadow hover:shadow-lg{% else %}border-b border-gray-200 pb-8{% endif %} group">
         
-        {% if section.settings.show_featured_image and article.image %}
+        {% if section.settings.show_featured_image %}
           <a href="{{ article.url }}">
-            <img src="{{ article.image | img_url: '400x250' }}" 
-                 alt="{{ article.title }}"
-                 class="w-full h-48 object-cover {% if section.settings.card_style == 'shadow' %}rounded-t-lg{% else %}rounded-lg{% endif %} group-hover:opacity-90">
+            {% if article.image %}
+              <img src="{{ article.image | img_url: '400x250' }}" 
+                   alt="{{ article.title }}"
+                   class="w-full h-48 object-cover {% if section.settings.card_style == 'shadow' %}rounded-t-lg{% else %}rounded-lg{% endif %} group-hover:opacity-90">
+            {% else %}
+              <div class="w-full h-48 bg-gray-100 flex items-center justify-center {% if section.settings.card_style == 'shadow' %}rounded-t-lg{% else %}rounded-lg{% endif %} group-hover:opacity-90">
+                {{ 'image' | placeholder_svg_tag: 'w-16 h-16 text-gray-400' }}
+              </div>
+            {% endif %}
           </a>
         {% endif %}
         
