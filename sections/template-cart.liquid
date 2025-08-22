@@ -1,0 +1,374 @@
+<div class="container mx-auto px-4 py-8 max-w-6xl">
+  {% if cart.item_count > 0 %}
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ section.settings.heading | default: 'Your Cart' }}</h1>
+      <p class="text-gray-600">{{ cart.item_count }} {% if cart.item_count == 1 %}item{% else %}items{% endif %} in your cart</p>
+    </div>
+
+    <form action="{{ routes.cart_url }}" method="post" novalidate class="cart-form">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Cart Items -->
+        <div class="lg:col-span-2">
+          <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+            <div class="divide-y divide-gray-200">
+              {% for item in cart.items %}
+                <div class="p-6 cart-item" data-key="{{ item.key }}">
+                  <div class="flex items-start space-x-4">
+                    <!-- Product Image -->
+                    <div class="flex-shrink-0">
+                      <a href="{{ item.url }}" class="block">
+                        <img 
+                          src="{{ item.image | image_url: width: 120 }}" 
+                          alt="{{ item.image.alt | escape }}"
+                          class="w-20 h-20 object-cover rounded-md border border-gray-200"
+                          loading="lazy"
+                        >
+                      </a>
+                    </div>
+
+                    <!-- Product Details -->
+                    <div class="flex-1 min-w-0">
+                      <div class="flex justify-between">
+                        <div class="flex-1">
+                          <h3 class="text-lg font-medium text-gray-900 mb-1">
+                            <a href="{{ item.url }}" class="hover:text-gray-700">
+                              {{ item.product.title }}
+                            </a>
+                          </h3>
+                          
+                          {% if item.variant.title != 'Default Title' %}
+                            <p class="text-sm text-gray-600 mb-2">{{ item.variant.title }}</p>
+                          {% endif %}
+
+                          <!-- Price -->
+                          <div class="flex items-center space-x-2 mb-3">
+                            <span class="text-lg font-semibold text-gray-900">
+                              {{ item.final_price | money }}
+                            </span>
+                            {% if item.original_price != item.final_price %}
+                              <span class="text-sm text-gray-500 line-through">
+                                {{ item.original_price | money }}
+                              </span>
+                            {% endif %}
+                          </div>
+
+                          <!-- Discounts -->
+                          {% if item.line_level_discount_allocations.size > 0 %}
+                            <div class="mb-3">
+                              {% for discount_allocation in item.line_level_discount_allocations %}
+                                <div class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 mr-2">
+                                  {{ discount_allocation.discount_application.title }}
+                                  (-{{ discount_allocation.amount | money }})
+                                </div>
+                              {% endfor %}
+                            </div>
+                          {% endif %}
+
+                          <!-- Quantity Controls -->
+                          <div class="flex items-center space-x-3">
+                            <label for="updates_{{ item.key }}" class="text-sm font-medium text-gray-700">
+                              Quantity:
+                            </label>
+                            <div class="flex items-center border border-gray-300 rounded-md">
+                              <button 
+                                type="button" 
+                                class="quantity-btn p-2 hover:bg-gray-50 text-gray-600"
+                                data-action="decrease"
+                                data-key="{{ item.key }}"
+                              >
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
+                                </svg>
+                              </button>
+                              <input 
+                                type="number" 
+                                name="updates[]" 
+                                id="updates_{{ item.key }}" 
+                                value="{{ item.quantity }}" 
+                                min="0"
+                                class="w-16 text-center border-none focus:ring-0 py-2"
+                                data-key="{{ item.key }}"
+                              >
+                              <button 
+                                type="button" 
+                                class="quantity-btn p-2 hover:bg-gray-50 text-gray-600"
+                                data-action="increase"
+                                data-key="{{ item.key }}"
+                              >
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                </svg>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- Line Total & Remove -->
+                        <div class="text-right ml-4">
+                          <p class="text-lg font-semibold text-gray-900 mb-3">
+                            {{ item.final_line_price | money }}
+                          </p>
+                          <button 
+                            type="button" 
+                            class="remove-item text-sm text-red-600 hover:text-red-800"
+                            data-key="{{ item.key }}"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Cart Summary -->
+        <div class="lg:col-span-1">
+          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 sticky top-8">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">{{ section.settings.summary_heading | default: 'Order Summary' }}</h2>
+            
+            <div class="space-y-3 mb-6">
+              <div class="flex justify-between text-gray-600">
+                <span>Subtotal</span>
+                <span>{{ cart.total_price | money }}</span>
+              </div>
+              
+              {% if cart.total_discounts > 0 %}
+                <div class="flex justify-between text-green-600">
+                  <span>Discounts</span>
+                  <span>-{{ cart.total_discounts | money }}</span>
+                </div>
+              {% endif %}
+
+              <div class="border-t pt-3">
+                <div class="flex justify-between text-lg font-semibold text-gray-900">
+                  <span>Total</span>
+                  <span>{{ cart.total_price | money }}</span>
+                </div>
+              </div>
+            </div>
+
+            {% if section.settings.show_note %}
+              <div class="mb-6">
+                <label for="cart-note" class="block text-sm font-medium text-gray-700 mb-2">
+                  Order Notes
+                </label>
+                <textarea 
+                  id="cart-note" 
+                  name="note" 
+                  rows="3" 
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="{{ section.settings.note_placeholder | default: 'Add special instructions...' }}"
+                >{{ cart.note }}</textarea>
+              </div>
+            {% endif %}
+
+            <div class="space-y-3">
+              <button 
+                type="submit" 
+                name="update" 
+                class="w-full bg-gray-600 text-white py-3 px-4 rounded-md hover:bg-gray-700 transition-colors font-medium"
+              >
+                {{ section.settings.update_button | default: 'Update Cart' }}
+              </button>
+              
+              <button 
+                type="submit" 
+                name="checkout" 
+                class="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 transition-colors font-medium text-lg"
+              >
+                {{ section.settings.checkout_button | default: 'Checkout' }}
+              </button>
+            </div>
+
+            {% if section.settings.show_shipping_text %}
+              <p class="text-sm text-gray-600 text-center mt-4">
+                {{ section.settings.shipping_text | default: 'Free shipping on orders over $50' }}
+              </p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </form>
+
+  {% else %}
+    <!-- Empty Cart -->
+    <div class="text-center py-16">
+      <div class="max-w-md mx-auto">
+        <div class="mb-6">
+          <svg class="w-16 h-16 text-gray-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l-1 6H6l-1-6z"></path>
+          </svg>
+        </div>
+        <h1 class="text-2xl font-bold text-gray-900 mb-2">{{ section.settings.empty_heading | default: 'Your cart is empty' }}</h1>
+        <p class="text-gray-600 mb-8">{{ section.settings.empty_text | default: 'Add some products to get started!' }}</p>
+        <a 
+          href="{{ section.settings.continue_url | default: routes.all_products_collection_url }}" 
+          class="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors"
+        >
+          {{ section.settings.continue_button | default: 'Continue Shopping' }}
+        </a>
+      </div>
+    </div>
+  {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Quantity button handlers
+  document.querySelectorAll('.quantity-btn').forEach(button => {
+    button.addEventListener('click', function() {
+      const action = this.dataset.action;
+      const key = this.dataset.key;
+      const input = document.getElementById('updates_' + key);
+      const currentValue = parseInt(input.value);
+      
+      if (action === 'increase') {
+        input.value = currentValue + 1;
+      } else if (action === 'decrease' && currentValue > 0) {
+        input.value = currentValue - 1;
+      }
+      
+      updateCart();
+    });
+  });
+
+  // Remove item handlers
+  document.querySelectorAll('.remove-item').forEach(button => {
+    button.addEventListener('click', function() {
+      const key = this.dataset.key;
+      const input = document.getElementById('updates_' + key);
+      input.value = 0;
+      updateCart();
+    });
+  });
+
+  // Auto-update on quantity input change
+  document.querySelectorAll('input[name="updates[]"]').forEach(input => {
+    input.addEventListener('change', updateCart);
+  });
+
+  function updateCart() {
+    const form = document.querySelector('.cart-form');
+    if (form) {
+      const formData = new FormData(form);
+      
+      fetch('/cart/update.js', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: new URLSearchParams(formData)
+      })
+      .then(response => response.json())
+      .then(data => {
+        window.location.reload();
+      })
+      .catch(error => {
+        console.error('Error updating cart:', error);
+      });
+    }
+  }
+});
+</script>
+
+{% schema %}
+{
+  "name": "Cart",
+  "class": "cart-template",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Cart Page Settings"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Cart Heading",
+      "default": "Your Cart"
+    },
+    {
+      "type": "text",
+      "id": "summary_heading",
+      "label": "Summary Heading",
+      "default": "Order Summary"
+    },
+    {
+      "type": "header",
+      "content": "Empty Cart Settings"
+    },
+    {
+      "type": "text",
+      "id": "empty_heading",
+      "label": "Empty Cart Heading",
+      "default": "Your cart is empty"
+    },
+    {
+      "type": "text",
+      "id": "empty_text",
+      "label": "Empty Cart Text",
+      "default": "Add some products to get started!"
+    },
+    {
+      "type": "url",
+      "id": "continue_url",
+      "label": "Continue Shopping URL",
+      "info": "Leave blank to use all products page"
+    },
+    {
+      "type": "text",
+      "id": "continue_button",
+      "label": "Continue Shopping Button Text",
+      "default": "Continue Shopping"
+    },
+    {
+      "type": "header",
+      "content": "Button Settings"
+    },
+    {
+      "type": "text",
+      "id": "update_button",
+      "label": "Update Button Text",
+      "default": "Update Cart"
+    },
+    {
+      "type": "text",
+      "id": "checkout_button",
+      "label": "Checkout Button Text",
+      "default": "Checkout"
+    },
+    {
+      "type": "header",
+      "content": "Additional Features"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_note",
+      "label": "Show Order Notes",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "note_placeholder",
+      "label": "Note Placeholder Text",
+      "default": "Add special instructions..."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_shipping_text",
+      "label": "Show Shipping Text",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "shipping_text",
+      "label": "Shipping Text",
+      "default": "Free shipping on orders over $50"
+    }
+  ]
+}
+{% endschema %}

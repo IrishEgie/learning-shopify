@@ -1,0 +1,24 @@
+{
+  "sections": {
+    "main": {
+      "type": "template-cart",
+      "settings": {
+        "heading": "Your Cart",
+        "summary_heading": "Order Summary",
+        "empty_heading": "Your cart is empty",
+        "empty_text": "Add some products to get started!",
+        "continue_url": "",
+        "continue_button": "Continue Shopping",
+        "update_button": "Update Cart",
+        "checkout_button": "Checkout",
+        "show_note": true,
+        "note_placeholder": "Add special instructions...",
+        "show_shipping_text": true,
+        "shipping_text": "Free shipping on orders over $50"
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}
