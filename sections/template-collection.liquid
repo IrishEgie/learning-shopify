@@ -1,201 +1,94 @@
-{% paginate collection.products by section.settings.products_per_page %}
-
 <div class="max-w-7xl mx-auto px-4 py-8">
-  
   <!-- Collection Header -->
-  {% if section.settings.show_collection_header %}
-    <div class="{% if section.settings.header_alignment == 'center' %}text-center{% endif %} mb-12">
-      <h1 class="text-4xl font-bold text-gray-900 mb-4">{{ collection.title }}</h1>
-      {% if section.settings.show_collection_description and collection.description != blank %}
-        <div class="text-lg text-gray-600 max-w-3xl {% if section.settings.header_alignment == 'center' %}mx-auto{% endif %}">
-          {{ collection.description }}
-        </div>
-      {% endif %}
-      {% if section.settings.show_product_count %}
-        <p class="text-sm text-gray-500 mt-4">{{ collection.products_count }} products</p>
-      {% endif %}
-    </div>
-  {% endif %}
-
-  <!-- Filters and Sorting -->
-  {% if section.settings.show_filters or section.settings.show_sorting %}
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 pb-4 border-b">
-      
-      <!-- Filters -->
-      {% if section.settings.show_filters %}
-        <div class="flex flex-wrap gap-4">
-          <!-- Availability Filter -->
-          <select class="px-3 py-2 border border-gray-300 rounded-md text-sm" onchange="filterProducts(this)">
-            <option value="">All Products</option>
-            <option value="available">In Stock</option>
-            <option value="unavailable">Out of Stock</option>
-          </select>
-          
-          <!-- Price Filter -->
-          <select class="px-3 py-2 border border-gray-300 rounded-md text-sm" onchange="filterByPrice(this)">
-            <option value="">All Prices</option>
-            <option value="0-25">Under $25</option>
-            <option value="25-50">$25 - $50</option>
-            <option value="50-100">$50 - $100</option>
-            <option value="100-">Over $100</option>
-          </select>
-        </div>
-      {% endif %}
-
-      <!-- Sorting -->
-      {% if section.settings.show_sorting %}
-        <div class="flex items-center gap-2">
-          <label for="sort-by" class="text-sm text-gray-600">Sort by:</label>
-          <select id="sort-by" class="px-3 py-2 border border-gray-300 rounded-md text-sm" onchange="sortProducts(this)">
-            <option value="manual">Featured</option>
-            <option value="best-selling">Best Selling</option>
-            <option value="title-ascending">Alphabetically, A-Z</option>
-            <option value="title-descending">Alphabetically, Z-A</option>
-            <option value="price-ascending">Price, Low to High</option>
-            <option value="price-descending">Price, High to Low</option>
-            <option value="created-ascending">Date, Old to New</option>
-            <option value="created-descending">Date, New to Old</option>
-          </select>
-        </div>
-      {% endif %}
-    </div>
-  {% endif %}
-
-  <!-- Products Grid -->
-  {% if collection.products.size > 0 %}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-{{ section.settings.grid_columns }} gap-6 mb-12" id="products-grid">
-      {% for product in collection.products %}
-        <div class="product-card group" 
-             data-price="{{ product.price | divided_by: 100.0 }}" 
-             data-availability="{{ product.available | json }}">
-          
-          <!-- Product Image -->
-          <div class="aspect-square overflow-hidden rounded-lg bg-gray-100 mb-4">
-            <a href="{{ product.url }}">
-              {% if product.featured_image %}
-                <img 
-                  src="{{ product.featured_image | image_url: width: 400 }}" 
-                  alt="{{ product.featured_image.alt | escape }}"
-                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  loading="lazy"
-                >
-              {% else %}
-                <div class="w-full h-full flex items-center justify-center">
-                  {{ 'product-1' | placeholder_svg_tag: 'w-20 h-20 text-gray-400' }}
-                </div>
-              {% endif %}
-              
-              <!-- Sale Badge -->
-              {% if product.compare_at_price > product.price %}
-                <div class="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
-                  SALE
-                </div>
-              {% endif %}
-              
-              <!-- Sold Out Badge -->
-              {% unless product.available %}
-                <div class="absolute top-2 right-2 bg-gray-500 text-white text-xs font-bold px-2 py-1 rounded">
-                  SOLD OUT
-                </div>
-              {% endunless %}
-            </a>
-          </div>
-          
-          <!-- Product Info -->
-          <div class="text-center">
-            <h3 class="text-lg font-medium text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
-              <a href="{{ product.url }}">{{ product.title }}</a>
-            </h3>
-            
-            {% if section.settings.show_vendor and product.vendor != blank %}
-              <p class="text-sm text-gray-500 mb-2">{{ product.vendor }}</p>
-            {% endif %}
-            
-            <!-- Price -->
-            <div class="flex items-center justify-center space-x-2 mb-3">
-              {% if product.compare_at_price > product.price %}
-                <span class="text-lg font-bold text-red-600">{{ product.price | money }}</span>
-                <span class="text-sm text-gray-500 line-through">{{ product.compare_at_price | money }}</span>
-              {% else %}
-                <span class="text-lg font-bold text-gray-900">{{ product.price | money }}</span>
-              {% endif %}
-            </div>
-            
-            <!-- Quick Add Button -->
-            {% if section.settings.show_quick_add and product.available %}
-              {% if product.variants.size == 1 %}
-                <button 
-                  class="quick-add-btn w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors text-sm font-medium"
-                  onclick="quickAdd({{ product.variants.first.id }})"
-                >
-                  {{ section.settings.quick_add_text | default: 'Quick Add' }}
-                </button>
-              {% else %}
-                <a 
-                  href="{{ product.url }}" 
-                  class="block w-full bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700 transition-colors text-sm font-medium"
-                >
-                  {{ section.settings.view_product_text | default: 'View Options' }}
-                </a>
-              {% endif %}
-            {% elsif product.available %}
-              <a 
-                href="{{ product.url }}" 
-                class="block w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors text-sm font-medium"
-              >
-                {{ section.settings.view_product_text | default: 'View Product' }}
-              </a>
-            {% else %}
-              <button 
-                class="w-full bg-gray-400 text-white py-2 px-4 rounded-md cursor-not-allowed text-sm font-medium"
-                disabled
-              >
-                Sold Out
-              </button>
-            {% endif %}
-          </div>
-        </div>
-      {% endfor %}
-    </div>
-    
-    <!-- Pagination -->
-    {% if section.settings.show_pagination and paginate.pages > 1 %}
-      <div class="flex justify-center">
-        <nav class="flex items-center space-x-2">
-          {% if paginate.previous %}
-            <a href="{{ paginate.previous.url }}" 
-               class="px-4 py-2 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 rounded">
-              ← Previous
-            </a>
-          {% endif %}
-          
-          {% for part in paginate.parts %}
-            {% if part.is_link %}
-              <a href="{{ part.url }}" 
-                 class="px-3 py-2 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 rounded">
-                {{ part.title }}
-              </a>
-            {% else %}
-              {% if part.title == '&hellip;' %}
-                <span class="px-3 py-2 text-gray-500">...</span>
-              {% else %}
-                <span class="px-3 py-2 bg-blue-500 text-white border border-blue-500 rounded">
-                  {{ part.title }}
-                </span>
-              {% endif %}
-            {% endif %}
-          {% endfor %}
-          
-          {% if paginate.next %}
-            <a href="{{ paginate.next.url }}" 
-               class="px-4 py-2 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 rounded">
-              Next →
-            </a>
-          {% endif %}
-        </nav>
+  <div class="text-center mb-12">
+    <h1 class="text-3xl font-bold text-gray-900 mb-4">{{ collection.title }}</h1>
+    {% if collection.description != blank %}
+      <div class="text-gray-600 max-w-2xl mx-auto prose prose-sm">
+        {{ collection.description }}
       </div>
     {% endif %}
-    
+  </div>
+
+  {% if collection.products.size > 0 %}
+    <!-- Filter and Sort Bar -->
+    <div class="flex flex-col sm:flex-row justify-between items-center mb-8 space-y-4 sm:space-y-0">
+      <p class="text-gray-600">
+        {{ collection.products.size }} 
+        {% if collection.products.size == 1 %}product{% else %}products{% endif %}
+      </p>
+      
+      <!-- Sort Options -->
+      {% if section.settings.show_sort %}
+        <div class="flex items-center space-x-2">
+          <label for="sort-by" class="text-sm font-medium text-gray-700">Sort by:</label>
+          <select 
+            id="sort-by" 
+            class="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            onchange="window.location.href = this.value"
+          >
+            <option value="{{ collection.url }}?sort_by=manual">Featured</option>
+            <option value="{{ collection.url }}?sort_by=best-selling" {% if collection.sort_by == 'best-selling' %}selected{% endif %}>Best Selling</option>
+            <option value="{{ collection.url }}?sort_by=title-ascending" {% if collection.sort_by == 'title-ascending' %}selected{% endif %}>A-Z</option>
+            <option value="{{ collection.url }}?sort_by=title-descending" {% if collection.sort_by == 'title-descending' %}selected{% endif %}>Z-A</option>
+            <option value="{{ collection.url }}?sort_by=price-ascending" {% if collection.sort_by == 'price-ascending' %}selected{% endif %}>Price: Low to High</option>
+            <option value="{{ collection.url }}?sort_by=price-descending" {% if collection.sort_by == 'price-descending' %}selected{% endif %}>Price: High to Low</option>
+            <option value="{{ collection.url }}?sort_by=created-descending" {% if collection.sort_by == 'created-descending' %}selected{% endif %}>Newest</option>
+          </select>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Products Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-12">
+      {% for product in collection.products %}
+        {% render 'product-card', product: product %}
+      {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if paginate.pages > 1 %}
+      <div class="flex justify-center items-center space-x-2">
+        {% if paginate.previous %}
+          <a 
+            href="{{ paginate.previous.url }}" 
+            class="px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 text-gray-700"
+          >
+            Previous
+          </a>
+        {% endif %}
+
+        {% for part in paginate.parts %}
+          {% if part.is_link %}
+            <a 
+              href="{{ part.url }}" 
+              class="px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 text-gray-700"
+            >
+              {{ part.title }}
+            </a>
+          {% else %}
+            {% if part.title == paginate.current_page %}
+              <span class="px-3 py-2 bg-blue-600 text-white rounded-md">
+                {{ part.title }}
+              </span>
+            {% else %}
+              <span class="px-3 py-2 text-gray-500">
+                {{ part.title }}
+              </span>
+            {% endif %}
+          {% endif %}
+        {% endfor %}
+
+        {% if paginate.next %}
+          <a 
+            href="{{ paginate.next.url }}" 
+            class="px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 text-gray-700"
+          >
+            Next
+          </a>
+        {% endif %}
+      </div>
+    {% endif %}
+
   {% else %}
     <!-- Empty Collection -->
     <div class="text-center py-16">
@@ -206,244 +99,93 @@
           </svg>
         </div>
         <h2 class="text-2xl font-bold text-gray-900 mb-2">No products found</h2>
-        <p class="text-gray-600 mb-8">This collection doesn't contain any products yet.</p>
+        <p class="text-gray-600 mb-8">This collection is empty or no products match your current filters.</p>
         <a 
-          href="{{ routes.collections_url }}" 
+          href="{{ routes.all_products_collection_url }}" 
           class="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors"
         >
-          Browse Collections
+          Shop All Products
         </a>
       </div>
     </div>
   {% endif %}
-  
 </div>
 
-{% endpaginate %}
-
 <script>
-// Quick Add to Cart
-function quickAdd(variantId) {
-  const formData = new FormData();
-  formData.append('id', variantId);
-  formData.append('quantity', 1);
-  
-  fetch('/cart/add.js', {
-    method: 'POST',
-    body: formData
-  })
-  .then(response => response.json())
-  .then(data => {
-    // Update button temporarily
-    event.target.textContent = 'Added!';
-    event.target.classList.remove('bg-blue-600', 'hover:bg-blue-700');
-    event.target.classList.add('bg-green-600');
-    
-    setTimeout(() => {
-      event.target.textContent = '{{ section.settings.quick_add_text | default: "Quick Add" }}';
-      event.target.classList.remove('bg-green-600');
-      event.target.classList.add('bg-blue-600', 'hover:bg-blue-700');
-    }, 2000);
-  })
-  .catch(error => {
-    console.error('Error:', error);
-  });
-}
-
-// Filter products (client-side for demo - you'd typically use Shopify's filtering)
-function filterProducts(select) {
-  const value = select.value;
-  const products = document.querySelectorAll('.product-card');
-  
-  products.forEach(product => {
-    const isAvailable = JSON.parse(product.dataset.availability);
-    
-    if (value === '') {
-      product.style.display = 'block';
-    } else if (value === 'available' && isAvailable) {
-      product.style.display = 'block';
-    } else if (value === 'unavailable' && !isAvailable) {
-      product.style.display = 'block';
-    } else {
-      product.style.display = 'none';
-    }
-  });
-}
-
-// Filter by price range
-function filterByPrice(select) {
-  const value = select.value;
-  const products = document.querySelectorAll('.product-card');
-  
-  products.forEach(product => {
-    const price = parseFloat(product.dataset.price);
-    let show = true;
-    
-    if (value !== '') {
-      const [min, max] = value.split('-').map(Number);
+document.addEventListener('DOMContentLoaded', function() {
+  // Quick Add functionality
+  document.querySelectorAll('.quick-add-form').forEach(form => {
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
       
-      if (max) {
-        show = price >= min && price <= max;
-      } else {
-        show = price >= min;
-      }
-    }
-    
-    product.style.display = show ? 'block' : 'none';
+      const button = this.querySelector('.quick-add-btn');
+      const originalText = button.textContent;
+      const formData = new FormData(this);
+      
+      button.textContent = 'Adding...';
+      button.disabled = true;
+      
+      fetch('/cart/add.js', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id: formData.get('id'),
+          quantity: parseInt(formData.get('quantity'))
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        button.textContent = 'Added!';
+        button.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+        button.classList.add('bg-green-600');
+        
+        setTimeout(() => {
+          button.textContent = originalText;
+          button.disabled = false;
+          button.classList.remove('bg-green-600');
+          button.classList.add('bg-blue-600', 'hover:bg-blue-700');
+        }, 1500);
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        button.textContent = 'Error';
+        button.disabled = false;
+        
+        setTimeout(() => {
+          button.textContent = originalText;
+        }, 2000);
+      });
+    });
   });
-}
-
-// Sort products (simplified client-side sorting for demo)
-function sortProducts(select) {
-  const value = select.value;
-  const grid = document.getElementById('products-grid');
-  const products = Array.from(grid.querySelectorAll('.product-card'));
-  
-  products.sort((a, b) => {
-    const titleA = a.querySelector('h3 a').textContent.toLowerCase();
-    const titleB = b.querySelector('h3 a').textContent.toLowerCase();
-    const priceA = parseFloat(a.dataset.price);
-    const priceB = parseFloat(b.dataset.price);
-    
-    switch(value) {
-      case 'title-ascending':
-        return titleA.localeCompare(titleB);
-      case 'title-descending':
-        return titleB.localeCompare(titleA);
-      case 'price-ascending':
-        return priceA - priceB;
-      case 'price-descending':
-        return priceB - priceA;
-      default:
-        return 0; // Keep original order for other options
-    }
-  });
-  
-  // Re-append sorted products
-  products.forEach(product => grid.appendChild(product));
-}
+});
 </script>
 
 {% schema %}
 {
-  "name": "Collection",
-  "class": "collection-template",
+  "name": "Collection Main",
   "settings": [
     {
       "type": "header",
-      "content": "Collection Header"
+      "content": "Collection Settings"
     },
     {
       "type": "checkbox",
-      "id": "show_collection_header",
-      "label": "Show collection header",
+      "id": "show_sort",
+      "label": "Show Sort Options",
       "default": true
-    },
-    {
-      "type": "select",
-      "id": "header_alignment",
-      "label": "Header alignment",
-      "options": [
-        {
-          "value": "left",
-          "label": "Left"
-        },
-        {
-          "value": "center",
-          "label": "Center"
-        }
-      ],
-      "default": "center"
-    },
-    {
-      "type": "checkbox",
-      "id": "show_collection_description",
-      "label": "Show collection description",
-      "default": true
-    },
-    {
-      "type": "checkbox",
-      "id": "show_product_count",
-      "label": "Show product count",
-      "default": true
-    },
-    {
-      "type": "header",
-      "content": "Layout Settings"
-    },
-    {
-      "type": "range",
-      "id": "grid_columns",
-      "label": "Products per row",
-      "min": 2,
-      "max": 4,
-      "step": 1,
-      "default": 3
     },
     {
       "type": "range",
       "id": "products_per_page",
       "label": "Products per page",
-      "min": 6,
-      "max": 24,
-      "step": 6,
-      "default": 12
-    },
-    {
-      "type": "header",
-      "content": "Filters and Sorting"
-    },
-    {
-      "type": "checkbox",
-      "id": "show_filters",
-      "label": "Show filters",
-      "default": true
-    },
-    {
-      "type": "checkbox",
-      "id": "show_sorting",
-      "label": "Show sorting options",
-      "default": true
-    },
-    {
-      "type": "header",
-      "content": "Product Cards"
-    },
-    {
-      "type": "checkbox",
-      "id": "show_vendor",
-      "label": "Show product vendor",
-      "default": false
-    },
-    {
-      "type": "checkbox",
-      "id": "show_quick_add",
-      "label": "Show quick add button",
-      "default": true
-    },
-    {
-      "type": "text",
-      "id": "quick_add_text",
-      "label": "Quick add button text",
-      "default": "Quick Add"
-    },
-    {
-      "type": "text",
-      "id": "view_product_text",
-      "label": "View product button text",
-      "default": "View Product"
-    },
-    {
-      "type": "header",
-      "content": "Pagination"
-    },
-    {
-      "type": "checkbox",
-      "id": "show_pagination",
-      "label": "Show pagination",
-      "default": true
+      "min": 8,
+      "max": 50,
+      "step": 4,
+      "default": 24,
+      "info": "This setting will be applied after the next theme update"
     }
   ]
 }
 {% endschema %}
-
