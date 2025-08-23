@@ -1,0 +1,25 @@
+{
+  "sections": {
+    "main": {
+      "type": "template-collection",
+      "settings": {
+        "show_collection_header": true,
+        "header_alignment": "center",
+        "show_collection_description": true,
+        "show_product_count": true,
+        "grid_columns": 3,
+        "products_per_page": 12,
+        "show_filters": true,
+        "show_sorting": true,
+        "show_vendor": false,
+        "show_quick_add": true,
+        "quick_add_text": "Quick Add",
+        "view_product_text": "View Product",
+        "show_pagination": true
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

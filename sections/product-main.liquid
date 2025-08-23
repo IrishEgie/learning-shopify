@@ -1,0 +1,419 @@
+<div class="max-w-6xl mx-auto px-4 py-8">
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+    
+    <!-- Product Images -->
+    <div class="product-images">
+      {% if product.images.size > 0 %}
+        <div class="mb-4">
+          <img 
+            id="main-product-image"
+            src="{{ product.featured_image | image_url: width: 600 }}" 
+            alt="{{ product.featured_image.alt | escape }}"
+            class="w-full rounded-lg shadow-sm"
+          >
+        </div>
+        
+        {% if product.images.size > 1 %}
+          <div class="grid grid-cols-4 gap-2">
+            {% for image in product.images limit: 4 %}
+              <button 
+                class="thumbnail border-2 border-transparent hover:border-gray-300 rounded overflow-hidden {% if forloop.first %}border-blue-500{% endif %}"
+                onclick="changeMainImage('{{ image | image_url: width: 600 }}', this)"
+              >
+                <img 
+                  src="{{ image | image_url: width: 150 }}" 
+                  alt="{{ image.alt | escape }}"
+                  class="w-full h-20 object-cover"
+                >
+              </button>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% else %}
+        <div class="bg-gray-100 aspect-square flex items-center justify-center rounded-lg">
+          <div class="w-32 h-32 bg-gray-300 rounded flex items-center justify-center">
+            <span class="text-gray-500 text-sm">No Image</span>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Product Info -->
+    <div class="product-info">
+      <!-- Breadcrumbs -->
+      <nav class="text-sm text-gray-500 mb-4">
+        <a href="{{ routes.root_url }}" class="hover:text-gray-700">Home</a>
+        <span class="mx-2">›</span>
+        {% if collection %}
+          <a href="{{ collection.url }}" class="hover:text-gray-700">{{ collection.title }}</a>
+          <span class="mx-2">›</span>
+        {% endif %}
+        <span class="text-gray-900">{{ product.title }}</span>
+      </nav>
+
+      <h1 class="text-3xl font-bold text-gray-900 mb-4">{{ product.title }}</h1>
+      
+      <!-- Price -->
+      <div class="mb-6">
+        {% if product.compare_at_price > product.price %}
+          <div class="flex items-center space-x-2">
+            <span class="text-2xl font-bold text-red-600">{{ product.price | money }}</span>
+            <span class="text-lg text-gray-500 line-through">{{ product.compare_at_price | money }}</span>
+            <span class="bg-red-100 text-red-800 text-sm font-medium px-2 py-1 rounded">
+              Save {{ product.compare_at_price | minus: product.price | money }}
+            </span>
+          </div>
+        {% else %}
+          <span class="text-2xl font-bold text-gray-900">{{ product.price | money }}</span>
+        {% endif %}
+      </div>
+
+      <!-- Product Form -->
+      <form action="/cart/add" method="post" enctype="multipart/form-data" class="product-form mb-6">
+        
+        <!-- Variants -->
+        {% unless product.has_only_default_variant %}
+          {% for option in product.options_with_values %}
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                {{ option.name }}
+              </label>
+              <select 
+                name="options[{{ option.name }}]" 
+                class="variant-selector w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                data-option-index="{{ forloop.index0 }}"
+              >
+                {% for value in option.values %}
+                  <option value="{{ value }}" {% if option.selected_value == value %}selected{% endif %}>
+                    {{ value }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+          {% endfor %}
+        {% endunless %}
+
+        <!-- Hidden variant ID input -->
+        <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}" class="variant-id">
+
+        <!-- Quantity -->
+        <div class="mb-6">
+          <label for="quantity" class="block text-sm font-medium text-gray-700 mb-2">
+            Quantity
+          </label>
+          <div class="flex items-center border border-gray-300 rounded-md w-32">
+            <button 
+              type="button" 
+              class="px-3 py-2 hover:bg-gray-50 text-gray-600"
+              onclick="changeQuantity(-1)"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
+              </svg>
+            </button>
+            <input 
+              type="number" 
+              id="quantity" 
+              name="quantity" 
+              value="1" 
+              min="1" 
+              class="w-16 text-center border-none focus:ring-0 py-2"
+            >
+            <button 
+              type="button" 
+              class="px-3 py-2 hover:bg-gray-50 text-gray-600"
+              onclick="changeQuantity(1)"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Add to Cart Button -->
+        <button 
+          type="submit" 
+          class="w-full bg-blue-600 text-white py-3 px-6 rounded-md hover:bg-blue-700 transition-colors font-medium text-lg mb-4 disabled:bg-gray-400"
+          id="add-to-cart-btn"
+          {% unless product.selected_or_first_available_variant.available %}disabled{% endunless %}
+        >
+          {% if product.selected_or_first_available_variant.available %}
+            {{ section.settings.add_to_cart_text | default: 'Add to Cart' }}
+          {% else %}
+            {{ section.settings.sold_out_text | default: 'Sold Out' }}
+          {% endif %}
+        </button>
+
+        <!-- Buy Now Button -->
+        {% if section.settings.show_buy_now %}
+          <button 
+            type="button" 
+            class="w-full bg-gray-900 text-white py-3 px-6 rounded-md hover:bg-gray-800 transition-colors font-medium"
+            onclick="buyNow()"
+            {% unless product.selected_or_first_available_variant.available %}disabled{% endunless %}
+          >
+            {{ section.settings.buy_now_text | default: 'Buy Now' }}
+          </button>
+        {% endif %}
+      </form>
+
+      <!-- Product Description -->
+      {% if section.settings.show_description and product.description != blank %}
+        <div class="prose prose-sm max-w-none mb-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-3">Description</h3>
+          <div class="text-gray-600">{{ product.description }}</div>
+        </div>
+      {% endif %}
+
+      <!-- Product Details -->
+      {% if section.settings.show_details %}
+        <div class="border-t pt-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-3">Product Details</h3>
+          <ul class="space-y-2 text-sm text-gray-600">
+            {% if product.vendor != blank %}
+              <li><strong>Brand:</strong> {{ product.vendor }}</li>
+            {% endif %}
+            {% if product.type != blank %}
+              <li><strong>Type:</strong> {{ product.type }}</li>
+            {% endif %}
+            {% if product.selected_or_first_available_variant.sku != blank %}
+              <li><strong>SKU:</strong> {{ product.selected_or_first_available_variant.sku }}</li>
+            {% endif %}
+            <li><strong>Availability:</strong> 
+              {% if product.available %}
+                <span class="text-green-600">In Stock</span>
+              {% else %}
+                <span class="text-red-600">Out of Stock</span>
+              {% endif %}
+            </li>
+          </ul>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<script>
+// Store product variants for JavaScript
+window.productVariants = [
+  {% for variant in product.variants %}
+    {
+      id: {{ variant.id }},
+      options: [{% for option in variant.options %}"{{ option | escape }}"{% unless forloop.last %},{% endunless %}{% endfor %}],
+      available: {{ variant.available | json }},
+      price: {{ variant.price | json }},
+      compare_at_price: {{ variant.compare_at_price | json }},
+      sku: "{{ variant.sku | escape }}"
+    }{% unless forloop.last %},{% endunless %}
+  {% endfor %}
+];
+
+// Change main product image
+function changeMainImage(imageSrc, element) {
+  document.getElementById('main-product-image').src = imageSrc;
+  
+  // Update active thumbnail
+  document.querySelectorAll('.thumbnail').forEach(thumb => {
+    thumb.classList.remove('border-blue-500');
+    thumb.classList.add('border-transparent');
+  });
+  element.classList.remove('border-transparent');
+  element.classList.add('border-blue-500');
+}
+
+// Quantity controls
+function changeQuantity(change) {
+  const quantityInput = document.getElementById('quantity');
+  const currentValue = parseInt(quantityInput.value);
+  const newValue = currentValue + change;
+  
+  if (newValue >= 1) {
+    quantityInput.value = newValue;
+  }
+}
+
+// Handle variant changes
+function updateVariant() {
+  const selectedOptions = Array.from(document.querySelectorAll('.variant-selector')).map(s => s.value);
+  
+  const selectedVariant = window.productVariants.find(variant => {
+    return variant.options.every((option, index) => option === selectedOptions[index]);
+  });
+
+  if (selectedVariant) {
+    // Update hidden variant ID input
+    document.querySelector('.variant-id').value = selectedVariant.id;
+
+    // Update add to cart button
+    const addToCartBtn = document.getElementById('add-to-cart-btn');
+    if (selectedVariant.available) {
+      addToCartBtn.disabled = false;
+      addToCartBtn.textContent = '{{ section.settings.add_to_cart_text | default: "Add to Cart" }}';
+      addToCartBtn.classList.remove('bg-gray-400');
+      addToCartBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+    } else {
+      addToCartBtn.disabled = true;
+      addToCartBtn.textContent = '{{ section.settings.sold_out_text | default: "Sold Out" }}';
+      addToCartBtn.classList.add('bg-gray-400');
+      addToCartBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+    }
+
+    // Update price if needed
+    const priceElement = document.querySelector('.text-2xl.font-bold');
+    if (priceElement && selectedVariant.price !== {{ product.price | json }}) {
+      priceElement.textContent = new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: '{{ cart.currency.iso_code | default: "USD" }}'
+      }).format(selectedVariant.price / 100);
+    }
+  }
+}
+
+// Add event listeners to variant selectors
+document.querySelectorAll('.variant-selector').forEach(selector => {
+  selector.addEventListener('change', updateVariant);
+});
+
+// Buy Now functionality
+function buyNow() {
+  if (isSubmitting) return;
+  
+  const form = document.querySelector('.product-form');
+  const formData = new FormData(form);
+  const variantId = formData.get('id');
+  const quantity = parseInt(formData.get('quantity')) || 1;
+  
+  fetch('/cart/add.js', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      id: variantId,
+      quantity: quantity
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    window.location.href = '/cart';
+  })
+  .catch(error => {
+    console.error('Error:', error);
+  });
+}
+
+// Add to cart with AJAX feedback - ensure single submission
+let isSubmitting = false;
+
+document.querySelector('.product-form').addEventListener('submit', function(e) {
+  e.preventDefault();
+  
+  // Prevent multiple submissions
+  if (isSubmitting) {
+    return;
+  }
+  
+  isSubmitting = true;
+  const formData = new FormData(this);
+  const addToCartBtn = document.getElementById('add-to-cart-btn');
+  const originalText = addToCartBtn.textContent;
+  
+  // Get the exact values from the form
+  const variantId = formData.get('id');
+  const quantity = parseInt(formData.get('quantity')) || 1;
+  
+  console.log('Adding to cart:', { variantId, quantity }); // Debug log
+  
+  addToCartBtn.textContent = 'Adding...';
+  addToCartBtn.disabled = true;
+  
+  fetch('/cart/add.js', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      id: variantId,
+      quantity: quantity
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    console.log('Cart response:', data); // Debug log
+    addToCartBtn.textContent = 'Added!';
+    addToCartBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+    addToCartBtn.classList.add('bg-green-600');
+    
+    setTimeout(() => {
+      addToCartBtn.textContent = originalText;
+      addToCartBtn.disabled = false;
+      addToCartBtn.classList.remove('bg-green-600');
+      addToCartBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+      isSubmitting = false;
+    }, 2000);
+  })
+  .catch(error => {
+    console.error('Error adding to cart:', error);
+    addToCartBtn.textContent = 'Error - Try Again';
+    addToCartBtn.disabled = false;
+    isSubmitting = false;
+    
+    setTimeout(() => {
+      addToCartBtn.textContent = originalText;
+    }, 2000);
+  });
+});
+</script>
+
+{% schema %}
+{
+  "name": "Product Information",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Button Settings"
+    },
+    {
+      "type": "text",
+      "id": "add_to_cart_text",
+      "label": "Add to Cart Button Text",
+      "default": "Add to Cart"
+    },
+    {
+      "type": "text",
+      "id": "sold_out_text",
+      "label": "Sold Out Button Text",
+      "default": "Sold Out"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_buy_now",
+      "label": "Show Buy Now Button",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "buy_now_text",
+      "label": "Buy Now Button Text",
+      "default": "Buy Now"
+    },
+    {
+      "type": "header",
+      "content": "Product Information Display"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_description",
+      "label": "Show Product Description",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_details",
+      "label": "Show Product Details",
+      "default": true
+    }
+  ]
+}
+{% endschema %}
